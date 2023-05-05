@@ -11,12 +11,16 @@ import org.springframework.session.web.context.AbstractHttpSessionApplicationIni
 @Configuration
 @EnableRedisHttpSession
 public class SessionConfig extends AbstractHttpSessionApplicationInitializer {
+    private String host = System.getenv().getOrDefault("REDIS_HOST", "localhost");
+    private String port = System.getenv().getOrDefault("REDIS_PORT", "6379");
+    private String password = System.getenv().getOrDefault("REDIS_PASSWORD", null);
+
     @Bean
     public LettuceConnectionFactory connectionFactory() {
         RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration();
-        standaloneConfiguration.setHostName("epreston.eastus2.redisenterprise.cache.azure.net");
-        standaloneConfiguration.setPort(10000);
-        standaloneConfiguration.setPassword("U9V+4VvY6Rq93m5xWGDdyqEjIz1Shslvx3yIVjRKUIg=");
+        standaloneConfiguration.setHostName(host);
+        standaloneConfiguration.setPort(Integer.parseInt(port));
+        standaloneConfiguration.setPassword(password);
         LettuceConnectionFactory lettuceConFactory = new LettuceConnectionFactory(standaloneConfiguration);
         return lettuceConFactory;
     }

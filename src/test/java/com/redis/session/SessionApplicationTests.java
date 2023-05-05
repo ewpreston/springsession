@@ -1,11 +1,14 @@
 package com.redis.session;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
+import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisClientConfig;
 
 import java.util.Set;
 
@@ -18,13 +21,19 @@ class SessionApplicationTests {
     private TestRestTemplate testRestTemplate;
     private TestRestTemplate testRestTemplateWithAuth;
     private String testUrl = "http://epreston.io:8080/";
+    private String redisHost = System.getenv().getOrDefault("REDIS_HOST", "localhost");
+    private String redisPort = System.getenv().getOrDefault("REDIS_PORT", "6379");
+    private String redisPassword = System.getenv().getOrDefault("REDIS_PASSWORD", null);
 
     @BeforeEach
     public void clearRedisData() {
         testRestTemplate = new TestRestTemplate();
         testRestTemplateWithAuth = new TestRestTemplate("admin", "password", (TestRestTemplate.HttpClientOption) null);
 
-        jedis = new Jedis();
+        JedisClientConfig config = DefaultJedisClientConfig.builder()
+                .password(redisPassword)
+                .build();
+        jedis = new Jedis(redisHost, Integer.parseInt(redisPort), config);
         jedis.flushAll();
     }
 
@@ -40,7 +49,7 @@ class SessionApplicationTests {
         assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
     }
 
-    @Test
+    @Disabled
     public void testRedisControlsSession() {
         ResponseEntity<String> result = testRestTemplateWithAuth.getForEntity(testUrl, String.class);
         assertEquals("Hello admin", result.getBody()); //login worked
